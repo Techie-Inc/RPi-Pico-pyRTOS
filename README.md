@@ -3,7 +3,7 @@
 
 ## Introduction
 
-pyRTOS is a real-time operating system (RTOS), written in MicroPython.  The primary goal of pyRTOS is to provide a pure MicroPython RTOS that will work on Raspberry Pi Pico.  The secondary goal is to provide an educational tool for advanced Raspberry Pi Pico users who want to learn to use an RTOS.  pyRTOS should also work in MicroPython, and it can be used in standard MicroPython as well.
+pyRTOS is a real-time operating system (RTOS), written in MicroPython.  The primary goal of pyRTOS is to provide a pure MicroPython RTOS that will work on Raspberry Pi Pico.  The secondary goal is to provide an educational tool for advanced Raspberry Pi Pico users who want to learn to use an RTOS.
 
 pyRTOS was modeled after FreeRTOS, with some critical differences.  The biggest difference is that it uses a voluntary task preemption model, where FreeRTOS generally enforces preemption through timer interrupts.  This means there is a greater onus on the user to ensure that all tasks are well behaved.  pyRTOS also uses different naming conventions, and tasks have built in message passing.
 
