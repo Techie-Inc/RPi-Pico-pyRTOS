@@ -1,3 +1,5 @@
+#Basic blink example with 3 tasks
+
 import pyRTOS
 from machine import Pin
 
@@ -11,7 +13,7 @@ def blink_task(self):
 def print_task_ms(self):
     while True:
         print('Running Task 2')
-        yield [pyRTOS.timeout_ms(1000)]
+        yield [pyRTOS.timeout(1)]
         
 def print_task_us(self):
     while True:
