@@ -3,7 +3,7 @@
 
 ## Introduction
 
-pyRTOS is a real-time operating system (RTOS), written in Python.  The primary goal of pyRTOS is to provide a pure Python RTOS that will work in CircuitPython.  The secondary goal is to provide an educational tool for advanced CircuitPython users who want to learn to use an RTOS.  pyRTOS should also work in MicroPython, and it can be used in standard Python as well.
+pyRTOS is a real-time operating system (RTOS), written in MicroPython.  The primary goal of pyRTOS is to provide a pure MicroPython RTOS that will work on Raspberry Pi Pico.  The secondary goal is to provide an educational tool for advanced Raspberry Pi Pico users who want to learn to use an RTOS.  pyRTOS should also work in MicroPython, and it can be used in standard MicroPython as well.
 
 pyRTOS was modeled after FreeRTOS, with some critical differences.  The biggest difference is that it uses a voluntary task preemption model, where FreeRTOS generally enforces preemption through timer interrupts.  This means there is a greater onus on the user to ensure that all tasks are well behaved.  pyRTOS also uses different naming conventions, and tasks have built in message passing.
 
@@ -47,7 +47,7 @@ To the best of my knowledge, aside from voluntary preemption, the task schedulin
 
 ## Basic Usage
 
-pyRTOS separates functionality into tasks.  A task is similar to a thread in a desktop operating system, except that in pyRTOS tasks cannot be migrated to other processors or cores.  This is due to limitations with CircuitPython.  In theory, though, it should be possible to write a scheduler with thread migration, for MicroPython, which does support hardware multithreading.
+pyRTOS separates functionality into tasks.  A task is similar to a thread in a desktop operating system, except that in pyRTOS tasks cannot be migrated to other processors or cores.  This is due to limitations with Raspberry Pi Pico.  In theory, though, it should be possible to write a scheduler with thread migration, for MicroPython, which does support hardware multithreading.
 
 A simple pyRTOS program will define some task functions, wrap them in `Task` objects, and then register them with the OS using the `add_task()` API function.  Once all tasks are added, the `start()` function is used to start the RTOS.
 
@@ -57,7 +57,7 @@ See sample.py for an example task and usage.
 
 ### Tasks
 
-A pyRTOS task is composed of a `Task` object combined with a function containing the task code.  A task function takes a single argument, a reference to the `Task` object containing it.  Task functions are Python generators.  Any code before the first yield is setup code.  Anything returned by this yield will be ignored.  The main task loop should follow this yield.  This is the code that will be executed when the scheduler gives the task CPU time.
+A pyRTOS task is composed of a `Task` object combined with a function containing the task code.  A task function takes a single argument, a reference to the `Task` object containing it.  Task functions are MicroPython generators.  Any code before the first yield is setup code.  Anything returned by this yield will be ignored.  The main task loop should follow this yield.  This is the code that will be executed when the scheduler gives the task CPU time.
 
 The main task loop is typically an infinite loop.  If the task needs to terminate, a return call should be used, and any teardown that is necessary should be done directly before returning.  Typically though, tasks never return.
 
@@ -91,13 +91,13 @@ sample.py has several examples of message passing.
 
 The error handling philosophy of pyRTOS is: Write good code.  The OS operates on the assumption that the user will write good code that does not cause issues for the OS.  If this assumption is broken, the OS _will_ crash when it comes across the broken elements, and it probably will not give you very meaningful error messages.  For example, attempting to send a notification to a `Task` that does not have notifications will cause a crash, with a message about the `Task` object having no `notifications` attribute (which is actually somewhat meaningful, in this particular case...).
 
-pyRTOS is designed to be used with CircuitPython, on devices that may have _very_ limited resources.  Adding OS level error handling would require significantly more code, using more flash and RAM space, as well as requiring more processing.  This is unacceptable.  As such, we will _not_ be adding OS error handling code to gracefully handle OS exceptions caused by incorrect use of the OS.  We will also not add special OS exceptions to throw when errors occur, nor will we add preemptive error detection.  These are all expensive, requiring significantly more code and processing time.  This means that errors that occur within the OS may not produce high quality error messages.  Users are encouraged to _write good code_, so that errors in the OS do not occur, and barring that, users can add error handling in their own code (but note that we do not condone writing poor code and then covering up the errors with error handling).  Please do not file issues for crashes caused by failures to use the APIs provided correctly.  Instead, fix your own code.
+pyRTOS is designed to be used with Raspberry Pi Pico, on devices that may have _very_ limited resources.  Adding OS level error handling would require significantly more code, using more flash and RAM space, as well as requiring more processing.  This is unacceptable.  As such, we will _not_ be adding OS error handling code to gracefully handle OS exceptions caused by incorrect use of the OS.  We will also not add special OS exceptions to throw when errors occur, nor will we add preemptive error detection.  These are all expensive, requiring significantly more code and processing time.  This means that errors that occur within the OS may not produce high quality error messages.  Users are encouraged to _write good code_, so that errors in the OS do not occur, and barring that, users can add error handling in their own code (but note that we do not condone writing poor code and then covering up the errors with error handling).  Please do not file issues for crashes caused by failures to use the APIs provided correctly.  Instead, fix your own code.
 
 That said, if there is a bug in the OS itself, please _do_ file an issue.  Users should not have to work around bugs in pyRTOS.  We apply the same standard, "Write good code" to ourselves, and if we have failed to do that, please let us know, so we can fix it.  If you are having a crash, and you are not sure where the error is occurring, please do your best to check your own code first, and if you cannot find the bug in your own code, feel free to file an issue.  We will do our best to track down the issue, as we have time (at the time of writing, this is a one man operation, and I am not getting paid for this, so it will likely not be immediate).  Do not be offended if we find the error in your code and inform you of that.  If the error is on our end, we will do our best to fix it in a timely manner (but again, one man team working for free, so no promises; this _is_ open source, so if it is urgent, please consider fixing it yourself).
 
 Similarly, if you find it difficult to correctly use the APIs, because the documentation is lacking or poorly written, please do file an issue, and we will try to improve it.  Our philosophy of "Write good code" also applies to our documentation.
 
-If this sounds harsh, we sincerely apologize.  We understand that this is not ideal.  Unfortunately, sacrifices must be made when working on systems with extremely limited resources.  Limited flash means our code has to be very small.  Limited RAM means we are limited in what we can keep track of.  Limited processing power means we have to weigh the value of every command we issue.  The purpose of an OS is to facilitate the tasks _the user_ deems important, and the more resources the OS uses, the fewer resources are available for the user's tasks.  Given such limited resources, keeping the OS as small and streamlined as possible takes precedence over error handling and debugging convenience.  If your application _needs_ the error handling, and you are confident your device has the resources, you can always create a fork of pyRTOS and add error handling yourself.  pyRTOS is pretty small, and it is not terribly difficult to understand, if you are familiar with Python, so this should not be very hard.
+If this sounds harsh, we sincerely apologize.  We understand that this is not ideal.  Unfortunately, sacrifices must be made when working on systems with extremely limited resources.  Limited flash means our code has to be very small.  Limited RAM means we are limited in what we can keep track of.  Limited processing power means we have to weigh the value of every command we issue.  The purpose of an OS is to facilitate the tasks _the user_ deems important, and the more resources the OS uses, the fewer resources are available for the user's tasks.  Given such limited resources, keeping the OS as small and streamlined as possible takes precedence over error handling and debugging convenience.  If your application _needs_ the error handling, and you are confident your device has the resources, you can always create a fork of pyRTOS and add error handling yourself.  pyRTOS is pretty small, and it is not terribly difficult to understand, if you are familiar with MicroPython, so this should not be very hard.
 
 ## pyRTOS API
 
@@ -459,7 +459,7 @@ Task block conditions are generators that yield True if their conditions are met
 
 A task is blocked when a yield returns a list of block conditions.  When any condition in that list returns True, the task is unblocked.  This allows any blocking condition to be paired with a `timeout()` condition, to unblock it when the timeout expires, even if the main condition is not met.  For example, `yield [wait_for_message(self), timeout(5)]` will block until there is a message in the incoming message queue, but it will timeout after 5 seconds and return to ready state, even if no message arrives.
 
-Note that blocking conditions _must_ be returned as lists, even if there is only one condition.  Thus, for a one second blocking delay, use `yield [timeout(1)]`.
+Note that blocking conditions _must_ be returned as lists, even if there is only one condition.  Thus, for a one second blocking delay, use `yield [pyRTOS.timeout(1)]`.
 
 **```timeout(seconds)```**
 
@@ -477,15 +477,27 @@ When combined with other blocking conditions, this will act as a timeout.  Becau
 
 </ul>
 
-**```timeout_ns(nanoseconds)```**
+**```timeout_ms(milliseconds)```**
 
 <ul>
 
-This is exactly like `timeout()`, except the argument specifies the delay in nanoseconds.  Note that the precision of this condition is dependent on the clock speed of your CPU, in addition to the limitations affecting `timeout()`.
+This is exactly like `timeout()`, except the argument specifies the delay in milliseconds.  Note that the precision of this condition is dependent on the clock speed of your CPU, in addition to the limitations affecting `timeout()`.
 
 </ul><ul>
 
-`nanoseconds` - The number of nanoseconds, as an integer value, to delay.
+`milliseconds` - The number of milliseconds, as an integer value, to delay.
+
+</ul>
+
+**```timeout_us(microseconds)```**
+
+<ul>
+
+This is exactly like `timeout()`, except the argument specifies the delay in microseconds.  Note that the precision of this condition is dependent on the clock speed of your CPU, in addition to the limitations affecting `timeout()`.
+
+</ul><ul>
+
+`microseconds` - The number of microseconds, as an integer value, to delay.
 
 </ul>
 
@@ -635,7 +647,7 @@ Service routines are OS extensions that run every OS loop.  An OS loop occurs ev
 
 Service routines are simple functions, which take no arguments and return nothing.  Because they run every OS loop, service routines should be small and fast, much like ISRs in RTOSs that use real-time preemption.  Normally, service routines should also be stateless.  Service routines that need to communicate with tasks can be created with references to global `MessageQueue` or `Task` objects.  As OS extensions, it is appropriate for service routines to call `Task.deliver()` to send tasks messages, however note that creating message objects is expensive.  Sending lighter messages in `MessageQueue`s is cheaper, and future features may provide even better options.
 
-Service routines that absolutely need internal state _can be_ created by wrapping a generator in a lambda function.  Note that this will produce much heavier service routines than normal, so this should be used sparingly and only when necessary.  To do this, first create a generator function.  The function itself can take arguments, but the yield cannot.  Ideally, there should be a single yield, within an infinite loop, that takes no arguments and returns nothing.  Each OS loop, the service routine will begin execution directly after the yield, and it will end when it gets back to the yield.  The generator must never return, or a StopIteration exception will be thrown, crashing the OS\*.  Once the generator has been created by calling the function, wrap it in a lambda function like this: `lambda: next(gen)`.  This lambda function is your service routine, which should be registered with `add_service_routine()`.
+Service routines that absolutely need internal state _can be_ created by wrapping a generator in a lambda function.  Note that this will produce much heavier service routines than normal, so this should be used sparingly.  To do this, first create a generator function.  The function itself can take arguments, but the yield cannot.  Ideally, there should be a single yield, within an infinite loop, that takes no arguments and returns nothing.  Each OS loop, the service routine will begin execution directly after the yield, and it will end when it gets back to the yield.  The generator must never return, or a StopIteration exception will be thrown, crashing the OS\*.  Once the generator has been created by calling the function, wrap it in a lambda function like this: `lambda: next(gen)`.  This lambda function is your service routine, which should be registered with `add_service_routine()`.
 
 Use cases for service routines start with the kind of things ISRs are normally used for.  In CircuitPython (as of 6.3.0), there are no iterrupts.  If you need to regularly check the state of a pin normally used as an interrupt source, a service routine is a good place to do that.  Just like with an ISR, you should not handle the program business in the service routine.  Instead, the service routine should notify a task that will handle the business associated with the iterrupt.  Service routines can also be used to handle things that multiple tasks care about, to avoid the need for semaphores.  For example, if multiple tasks need network communication (generally avoid this if possible), a service routine can handle routing traffic between the network and the tasks.  Note though, that putting a large network stack in a service routine is a terrible idea that will starve your tasks of CPU time.  If you need something bigger than a very slim traffic routing routine, it should be put into a task rather than a service routine.
 
@@ -969,12 +981,14 @@ We currently have a Mutex object (with priority inheritance) and a Binary Semaph
 
 We need to look through the FreeRTOS documentation, to see what other things a fully featured RTOS could have.
 
-### Size
-
-Because this is intended for use on microcontrollers, size is a serious concern.  The code is very well commented, but this means that comments take up a very significant fraction of the space.  We are releasing in .mpy format for Circuit Python now, which is cutting the size down to around 5KB.  Maybe we should include a source version with comments stripped out in future releases.
-
 ## Notes
 
-This needs more extensive testing.  The Mutex class has not been tested.  We also need more testing on block conditions.  `sample.py` uses `wait_for_message()` twice, successfully.  `timeout()` is also tested in sample.py.
+Porting to Rasperry Pi Pico is a work in progress.
 
-What we really need is a handful of example problems, including some for actual CircuitPython devices.  When the Trinkey RP2040 comes out, there will be some plenty of room for some solid CircuitPython RTOS example programs.  I have a NeoKey Trinkey and a Rotary Trinkey.  Neither of these have much going on, so they are really only suitable for very simple examples.
+Confirmed working on RPi Pico with RP2040-based boards.
+ - `timeout()` is tested in blink.py.
+
+Future work:
+ - Multi core support
+ - Testing of other functions from original library
+ - Additional Examples

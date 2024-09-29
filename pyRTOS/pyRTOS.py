@@ -49,16 +49,22 @@ def start(scheduler=None):
 
 # Timeout   - Task is delayed for no less than the specified time.
 def timeout(seconds):
-		start = time.monotonic()
+		start = time.ticks_ms()
 
 		while True:
-			yield time.monotonic() - start >= seconds
+			yield time.ticks_ms() - start >= seconds * 1000
 
-def timeout_ns(nanoseconds):
-		start = time.monotonic_ns()
+def timeout_ms(milliseconds):
+		start = time.ticks_ms()
 
 		while True:
-			yield time.monotonic_ns() - start >= nanoseconds
+			yield time.ticks_ms() - start >= milliseconds
+
+def timeout_us(microseconds):
+		start = time.ticks_us()
+
+		while True:
+			yield time.ticks_us() - start >= microseconds
 
 # Cycle Delay - Task is delayed for no less than the number OS loops specified.
 def delay(cycles):
