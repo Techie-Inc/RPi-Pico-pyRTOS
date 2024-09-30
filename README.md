@@ -3,7 +3,7 @@
 
 ## Introduction
 
-pyRTOS is a real-time operating system (RTOS), written in MicroPython.  The primary goal of pyRTOS is to provide a pure MicroPython RTOS that will work on Raspberry Pi Pico.  The secondary goal is to provide an educational tool for advanced Raspberry Pi Pico users who want to learn to use an RTOS.
+pyRTOS is a real-time operating system (RTOS), written in MicroPython.  The primary goal of pyRTOS is to provide a MicroPython RTOS that will work on the Raspberry Pi Pico.  The secondary goal is to provide an educational tool for advanced Raspberry Pi Pico users who want to learn to use an RTOS or incorporate RTOS functionality into their commercial projects.
 
 pyRTOS was modeled after FreeRTOS, with some critical differences.  The biggest difference is that it uses a voluntary task preemption model, where FreeRTOS generally enforces preemption through timer interrupts.  This means there is a greater onus on the user to ensure that all tasks are well behaved.  pyRTOS also uses different naming conventions, and tasks have built in message passing.
 
@@ -47,13 +47,13 @@ To the best of my knowledge, aside from voluntary preemption, the task schedulin
 
 ## Basic Usage
 
-pyRTOS separates functionality into tasks.  A task is similar to a thread in a desktop operating system, except that in pyRTOS tasks cannot be migrated to other processors or cores.  This is due to limitations with Raspberry Pi Pico.  In theory, though, it should be possible to write a scheduler with thread migration, for MicroPython, which does support hardware multithreading.
+pyRTOS separates functionality into tasks.  A task is similar to a thread in a desktop operating system, except that in pyRTOS tasks cannot be migrated to other processors or cores. Future versions may include multi-core support.
 
 A simple pyRTOS program will define some task functions, wrap them in `Task` objects, and then register them with the OS using the `add_task()` API function.  Once all tasks are added, the `start()` function is used to start the RTOS.
 
 Once started, the RTOS will schedule time for tasks, giving tasks CPU time based on a priority scheduling algorithm.  When the tasks are well behaved, designed to work together, and given the right priorities, the operating system will orchestrate them so they work together to accomplish whatever goal the program was designed for.
 
-See sample.py for an example task and usage.
+See blink.py for an example task and usage.
 
 ### Tasks
 
@@ -79,7 +79,7 @@ Notifications are designed for lightweight message passing, both when full messa
 
 ### Messages
 
-Message passing mechanics are built directly into tasks in pyRTOS, in the form of mailboxes.  By default tasks are lightweight, without mailboxes, but a constructor argument can be used to give a task has its own incoming mailbox.  Messages are delivered when the currently running task yields.  This message passing system is fairly simple.  Each message has a single sender and a single recipient.  Messages also have a type, which can be pyRTOS.QUIT or a user defined type (see sample.py).  User defined types start with integer values of 128 and higher.  Types below 128 are reserved for future use by the pyRTOS API.  Messages can also contain a message, but this is not required.  If the type field is sufficient to convey the necessary information, it is better to leave the message field empty, to save memory.  The message field can contain anything, including objects and lists.  If you need to pass arguments into a new task that has a mailbox, one way to do this is to call `deliver()` on the newly created task object, with a list or tuple of arguments.   This will add the arguments to the task's mailbox, allowing it to access the arguments during initialization.
+Message passing mechanics are built directly into tasks in pyRTOS, in the form of mailboxes.  By default tasks are lightweight, without mailboxes, but a constructor argument can be used to give a task its own incoming mailbox.  Messages are delivered when the currently running task yields.  This message passing system is fairly simple.  Each message has a single sender and a single recipient.  Messages also have a type, which can be pyRTOS.QUIT or a user defined type.  User defined types start with integer values of 128 and higher.  Types below 128 are reserved for future use by the pyRTOS API.  Messages can also contain a message, but this is not required.  If the type field is sufficient to convey the necessary information, it is better to leave the message field empty, to save memory.  The message field can contain anything, including objects and lists.  If you need to pass arguments into a new task that has a mailbox, one way to do this is to call `deliver()` on the newly created task object, with a list or tuple of arguments.   This will add the arguments to the task's mailbox, allowing it to access the arguments during initialization.
 
 Checking messages is a critical part of any task that may receive messages.  Unchecked mailboxes can accumulate so many messages that your system runs out of memory.  If your task may receive messages, it is important to check the mailbox every loop.  Also be careful not to send low priority tasks too many messages without periodically blocking all higher priority tasks, so they can have time to process their messages.  If a task that is receiving messages never gets CPU time, that is another way to run out of memory.
 
@@ -732,9 +732,9 @@ Delay for 0.5 seconds
 
 `yield [pyRTOS.timeout(0.5)]`
 
-Delay for 100 nanoseconds
+Delay for 100 microseconds
 
-`yield [pyRTOS.timeout_ns(100)]`
+`yield [pyRTOS.timeout_us(100)]`
 
 Delay for 10 OS cycles (other tasks must yield 10 times, unless all other tasks are suspended or blocked)
 
@@ -986,9 +986,13 @@ We need to look through the FreeRTOS documentation, to see what other things a f
 Porting to Rasperry Pi Pico is a work in progress.
 
 Confirmed working on RPi Pico with RP2040-based boards.
- - `timeout()` is tested in blink.py.
+ - `timeout()` function set has been tested, example in blink.py.
 
 Future work:
  - Multi core support
  - Testing of other functions from original library
  - Additional Examples
+
+## Acknowledgements
+
+I'd like to thank Ben Williams (https://github.com/Rybec) for the heavy lifting and outstanding work he did with the original pyRTOS library.
